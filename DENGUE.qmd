@@ -1,0 +1,185 @@
+---
+title: "Impacto del Dengue en la Salud Pública: Factores Epidemiológicos y Respuesta del Sistema de Salud ante el Brote en América Latina"
+format: html
+editor: Grupo 8
+---
+
+# Integrantes:
+
+Greifo Rodríguez,Ani Cecilia
+Enrique Tincopa, Zarate
+Quispe Prado, Miluska
+Pareja Abad, Shaden
+Edgar Saire, Licla
+
+# Introducción
+
+El dengue es una enfermedad viral transmitida principalmente por el mosquito **Aedes aegypti**, y es una de las principales preocupaciones de salud pública en áreas tropicales y subtropicales del mundo. En América Latina, el dengue ha experimentado un aumento significativo en los últimos años, especialmente durante los brotes epidémicos. El brote más reciente ha afectado de manera alarmante a países como Perú, Brasil y Bolivia, donde se han reportado tasas elevadas de incidencia y mortalidad.
+
+Este estudio examina los factores que contribuyen al aumento de los casos de dengue, incluyendo el impacto del cambio climático, el fenómeno de El Niño y las deficiencias en las estrategias de control del vector. Además, se abordan las consecuencias de la falta de infraestructura y el acceso limitado a servicios médicos en las zonas más afectadas. El análisis también destaca la importancia de la prevención y el control del mosquito transmisor, así como las medidas de respuesta de salud pública.
+
+A través de este análisis, se busca proporcionar una comprensión más profunda de la dinámica del dengue y ofrecer recomendaciones para mejorar la respuesta ante futuros brotes, priorizando la salud pública y la educación comunitaria en la lucha contra esta enfermedad.
+
+# Instalación de paquetes
+
+Primero, asegurémonos de que el paquete epiR esté instalado y cargado en R:
+
+```{r}
+# Instalar y cargar el paquete epiR si no está instalado
+if (!require(epiR)) {
+  install.packages("epiR")
+}
+library(epiR)
+```
+
+# Cálculo de muestra para un estudio de prevalencia
+
+Para un estudio de prevalencia, utilizaremos la diversión epi.ssimpleesb del paquete epiR para calcular el tamaño de muestra necesario para estimar la prevalencia de dengue en Perú. Basado en el documento, definimos un caso hipotético:
+
+**Escenario:**
+
+-   Queremos estimar la **prevalencia esperada** de casos de dengue en Perú en 2023. Tomamos un valor aproximado del 0.31% (0.0031), calculado como la tasa de incidencia acumulada reportada para América (203 por 100,000 habitantes) ajustada al contexto peruano, donde se reportaron 98,760 casos hasta la SE 23 de 2023 sobre una población aproximada de 33 millones (98,760 /33,000,000 ≈ 0.003).
+
+-   **Precisión deseada**: 0.001 (0.1%), un margen de error razonable dado el bajo porcentaje.
+
+-   **Nivel de confianza**: 95% (0.95), estándar epidemiológico.
+
+```{r}
+# Cargar el paquete necesario
+library(epiR)
+
+# Definir las variables
+prevalencia_esperada <- 0.0031  # Prevalencia esperada de 0.31%
+precision <- 0.001  # Precisión deseada de 0.1%
+confianza <- 0.95  # Nivel de confianza (95%)
+
+# Definir el parámetro 'sp' (especificidad o un valor relacionado con el estudio)
+sp <- 0.95  # Este es solo un ejemplo, ajusta según el contexto de tu estudio
+
+# Calcular el tamaño de muestra para un estudio de prevalencia
+# Ahora se incluye el argumento "sp" para completar el cálculo
+resultado_prevalencia <- epi.sssimpleestb(
+  N = NA, 
+  Py = prevalencia_esperada, 
+  epsilon = precision, 
+  error = "relative", 
+  conf.level = confianza, 
+  se = precision,  # Definimos el error estándar
+  sp = sp          # Añadimos el parámetro 'sp'
+)
+
+# Mostrar el resultado
+print(resultado_prevalencia)
+```
+
+# Cálculo de muestra para un estudio de casos y controles
+
+Para un estudio de casos y controles, usaremos la diversión epi.sscc para determinar el tamaño de muestra necesario para detectar una asociación. Basado en el documento, consejos un caso hipotético relacionado con el dengue:
+
+**Escenario:**
+
+-   Queremos investigar si la **diabetes mellitus** (mencionada como factor de riesgo para dengue severo) está asociada con un mayor riesgo de dengue grave.
+
+-   **Razón de momios (odds ratio) deseada a detectar**: 2.0 (efecto moderado, basado en estudios de comorbilidades).
+
+-   **Prevalencia de exposición en los controles**: 5% (0.05), asumiendo que el 5% de la poblacion sin dengue grave tiene diabetes (valor estimado).
+
+-   **Potencia del estudio**: 80% (0,80).
+
+-   **Nivel de confianza**: 95% (0,95).
+
+-   **Relación de controles por caso**: 1 (1:1).
+
+```{r}
+# Cálculo de muestra para un estudio de casos y controles
+or_deseado <- 2.0  # Odds ratio
+prevalencia_exposicion_controles <- 0.05  # 5%
+potencia <- 0.80  # 80%
+confianza <- 0.95  # 95%
+ratio_controles_por_caso <- 1  # 1 control por caso
+
+# Calcular el tamaño de muestra
+resultado_casos_controles <- epi.sscc(OR = or_deseado, p1 = NA, 
+                                      p0 = prevalencia_exposicion_controles, 
+                                      n = NA, power = potencia, 
+                                      r = ratio_controles_por_caso, 
+                                      phi.coef = 0, design = 1, 
+                                      sided.test = 2, conf.level = confianza, 
+                                      method = "unmatched", fleiss = FALSE)
+
+# Mostrar el resultado
+print(resultado_casos_controles)
+```
+
+# Interpretación de resultados
+
+En el contexto del brote de dengue que afecta a Perú, con datos de 2023 revelando más de 98,000 casos confirmados y 121 muertes, el estudio subraya la gravedad de la situación. Las tasas de mortalidad y morbilidad en la región son alarmantes y superan los registros históricos. Este rebrote de dengue se ve influenciado por una combinación de factores, entre ellos el cambio climático, el fenómeno de El Niño y el deterioro de las condiciones sanitarias en áreas de alta pobreza.
+
+#### Resultados Claves:
+
+**Número de Casos y Distribución Geográfica**:
+
+-   A lo largo de 2023, las cifras alcanzaron un total de **98,760 casos** y **121 muertes** en Perú, destacándose como el peor rebrote histórico.
+
+-   El número de casos en otras partes de América también ha sido elevado, con **Brasil** (1.5 millones de casos) y **Bolivia** (126,000 casos) como países más afectados.
+
+**Aumento de Casos Graves**:
+
+-   Los casos de dengue grave aumentaron significativamente, alcanzando una tasa de letalidad global de **0.037%** en la región.
+
+-   El estudio observa una alta prevalencia de complicaciones graves entre los pacientes infectados, con un riesgo mayor asociado a infecciones secundarias por serotipos diferentes del virus.
+
+**Factores Epidemiológicos**:
+
+-   Factores como el cambio climático, el fenómeno de El Niño y el deterioro en las condiciones de vida de los afectados (especialmente en zonas rurales y urbanas marginales) contribuyen al aumento de los casos.
+
+-   La resistencia del **Aedes aegypti** (vector del dengue) a algunos insecticidas ha dificultado el control vectorial en muchas áreas.
+
+**Respuesta y Control**:
+
+-   Aunque las medidas de control del vector y la implementación de vacunas han mostrado eficacia en algunas áreas, el estudio concluye que la falta de infraestructura, la resistencia a algunos insecticidas y la insuficiente participación comunitaria han limitado el éxito de las estrategias preventivas.
+
+    ```{r}
+    # Cargar la librería necesaria
+    library(epiR)
+
+    # Definir los parámetros del estudio
+    or <- 2.5  # Odds ratio
+    p0 <- 0.2  # Prevalencia de exposición en controles (20%)
+    power <- 0.8  # Potencia (80%)
+    conf_level <- 0.95  # Nivel de confianza (95%)
+    r <- 1  # Relación de casos a controles (1:1)
+
+    # Calcular el tamaño de muestra utilizando epi.sscc
+    sample_cc <- epi.sscc(
+      OR = or,               # Odds ratio
+      p0 = p0,               # Prevalencia de exposición en controles
+      n = NA,                # Establecer a NA para calcular el tamaño de muestra
+      power = power,         # Potencia
+      r = r,                 # Relación de casos a controles
+      conf.level = conf_level,  # Nivel de confianza
+      method = "unmatched",  # Estudio no apareado
+      N = NA                 # Tamaño de población (no necesario para no apareados)
+    )
+
+    # Interpretación de los resultados del cálculo de tamaño de muestra
+    cat("Interpretación de los Resultados del Estudio sobre el Brote de Dengue en Perú\n")
+    cat("----------------------------------------------------\n")
+    cat("El análisis se realizó con un Odds Ratio (OR) de", or, 
+        ", lo que indica un aumento de", or, "veces en el riesgo de desarrollar dengue grave debido a una infección secundaria.\n")
+    cat("La prevalencia de exposición en los controles es de", p0 * 100, "%, lo que sugiere que un 20% de la población de control ha tenido exposición previa al dengue.\n")
+    cat("El poder del estudio es del", power * 100, "% y el nivel de confianza es del", conf_level * 100, "%.\n")
+    cat("La relación de casos a controles es de", r, ":1, lo que significa que se analizarán cantidades iguales de casos y controles.\n")
+    cat("El tamaño de muestra total calculado es de", ceiling(sample_cc$n.total), "personas.\n")
+    cat("Esto se divide en", ceiling(sample_cc$n.total / 2), "casos y", ceiling(sample_cc$n.total / 2), "controles.\n")
+    cat("\nEn cuanto a los resultados del brote de dengue en Perú, en 2023 se notificaron más de", sample_cc$n.total, "casos de dengue, con una tasa de incidencia acumulada de 203 casos por 100,000 habitantes.\n")
+    cat("De estos, se estima que el", round(sample_cc$n.total * 0.0013), "porcentaje serán casos graves que requieren hospitalización.\n")
+    cat("Esto refleja un aumento alarmante en comparación con los años anteriores, y la tasa de letalidad estimada de", 0.037 * 100, "% es indicativa de la gravedad del brote.\n")
+
+    cat("\nAdemás, el estudio muestra que factores como el cambio climático, la expansión del vector y las condiciones de vida precarias han exacerbado la situación.\n")
+    cat("Se recomienda un enfoque integral para controlar el dengue, que incluya medidas de control vectorial y la implementación de programas de vacunación en áreas de alto riesgo.\n")
+
+    cat("\nEste cálculo es fundamental para planificar recursos y estrategias de intervención, garantizando que el sistema de salud tenga la capacidad de responder de manera efectiva a los brotes de dengue.\n")
+    cat("\nConclusión: El cálculo de tamaño de muestra y la interpretación de los resultados confirman que el brote de dengue en Perú es grave y requiere una intervención urgente y efectiva.\n")
+
+    ```
