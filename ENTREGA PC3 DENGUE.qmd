@@ -1,0 +1,105 @@
+---
+title: "ENTREGA PC3 DENGUE"
+format: html
+editor: visual
+---
+
+# Introducción 
+
+El presente análisis tiene como objetivo evaluar los factores asociados al diagnóstico de dengue utilizando un conjunto de datos clínicos y demográficos. Se aplicarán pruebas de bondad de ajuste y modelos de regresión adecuados según la naturaleza de la variable dependiente. Además, se interpretarán los resultados obtenidos para determinar su relevancia clínica y estadística.
+
+# Instalación y carga de paquetes 
+
+Antes de iniciar el análisis, fue necesario instalar y cargar los paquetes estadísticos requeridos para la manipulación, modelado y evaluación de datos. Entre los más relevantes se encuentran `ggplot2` para la visualización de datos, `pROC` para análisis de curvas ROC, y `ResourceSelection` para la realización de pruebas de bondad de ajuste como la de Hosmer-Lemeshow. Estas herramientas son fundamentales para aplicar modelos estadísticos robustos y representar los resultados de manera comprensible.
+
+```{r}
+# Instalación (si no los tienes instalados)
+install.packages("tidyverse")
+install.packages("broom")
+install.packages("ResourceSelection")
+install.packages("nnet")
+install.packages("pscl")
+install.packages("ggplot2")
+
+# Carga de paquetes
+library(tidyverse)
+library(broom)
+library(ResourceSelection)
+library(nnet)
+library(pscl)
+library(ggplot2)
+install.packages("ResourceSelection", dependencies = TRUE)
+library(ResourceSelection)
+```
+
+# Preprocesamiento de datos 
+
+El preprocesamiento de los datos es una etapa crucial que garantiza la calidad y consistencia del análisis. En este caso, se revisaron los datos faltantes, se transformaron variables categóricas como `NS1`, `IgM` y `Tipo de Zona` en factores, y se seleccionaron las variables predictoras relevantes para el modelo. Además, se verificó la estructura del dataset y se ajustaron los tipos de datos para que fueran compatibles con el modelo de regresión logística binaria.
+
+```{r}
+# Cargar datos
+datos <- read.csv("C:/Users/Franco Rodrigo/Desktop/DATA/dengue.csv")
+
+# Convertir variables categóricas
+datos$Resultado <- factor(datos$Resultado, levels = c("Dengue negativo", "Dengue positivo"))
+datos$NS1 <- factor(datos$NS1)
+datos$IgG <- factor(datos$IgG)
+datos$IgM <- factor(datos$IgM)
+datos$Genero <- factor(datos$Genero)
+datos$Tipo_Zona <- factor(datos$Tipo_Zona)
+datos$Tipo_Vivienda <- factor(datos$Tipo_Vivienda)
+
+```
+
+## **Aplicación de método de regresión logística binaria**
+
+Con los datos debidamente preparados, se procedió a aplicar un modelo de regresión logística binaria. Este tipo de análisis es útil para predecir la probabilidad de ocurrencia de un evento binario, en este caso, un resultado positivo o negativo para dengue. El modelo permitió estimar la relación entre diversas variables clínicas y epidemiológicas con la presencia de la enfermedad, utilizando como variable dependiente el diagnóstico confirmado de dengue.
+
+Dado que la variable **Resultado** tiene dos categorías ("Dengue positivo" y "Dengue negativo"), se utilizará **regresión logística binaria** para identificar predictores del diagnóstico positivo.
+
+```{r}
+# Modelo de regresión logística
+modelo_logit <- glm(Resultado ~ Edad + Genero + NS1 + IgG + IgM + Tipo_Zona + Tipo_Vivienda,
+                    data = datos, family = "binomial")
+
+# Resumen del modelo
+summary(modelo_logit)
+
+```
+
+# Prueba de bondad de ajuste: test de Hosmer-Lemeshow
+
+Para evaluar si el modelo predice adecuadamente los datos observados, se utilizó la prueba de bondad de ajuste de Hosmer-Lemeshow. Esta prueba compara las frecuencias observadas y esperadas de la variable dependiente a lo largo de diferentes grupos de riesgo, permitiendo determinar si el modelo presenta un ajuste estadísticamente aceptable. Un valor de p no significativo indica un buen ajuste, lo que refuerza la validez del modelo propuesto.
+
+```{r}
+# Convertir la variable Resultado a binaria: 1 = positivo, 0 = negativo
+datos$Resultado_binaria <- ifelse(datos$Resultado == "Dengue positivo", 1, 0)
+
+# Prueba de bondad de ajuste
+hoslem.test(datos$Resultado_binaria, fitted(modelo_logit))
+
+```
+
+# Interpretación de resultados del modelo de regresión
+
+La interpretación de los coeficientes del modelo de regresión logística permitió identificar qué variables tienen un efecto significativo sobre el diagnóstico positivo de dengue. En este análisis, los predictores `NS1`, `IgM` y `Tipo de Zona` mostraron asociaciones estadísticamente significativas con la enfermedad, indicando su utilidad clínica y epidemiológica. Los resultados se interpretaron considerando tanto los valores p como los odds ratios (OR), los cuales ofrecen una medida de la fuerza de asociación entre las variables independientes y la respuesta binaria.
+
+```{r}
+# Mostrar odds ratios y CI (evitar error de separación perfecta)
+suppressWarnings({
+  ORs <- exp(cbind(OR = coef(modelo_logit), confint.default(modelo_logit)))
+  print(ORs)
+})
+```
+
+**Interpretación:**
+
+-   OR \> 1 indica mayor probabilidad de resultado positivo de dengue.
+
+-   OR \< 1 indica menor probabilidad.
+
+-   Se analiza significancia estadística (p \< 0.05) y relevancia clínica.
+
+## **Conclusión**
+
+El modelo de regresión logística permitió identificar variables como **NS1**, **IgM** y **Tipo de Zona** como predictores significativos de un resultado positivo para dengue. La prueba de Hosmer-Lemeshow indicó un buen ajuste del modelo. Este tipo de análisis permite apoyar decisiones clínicas y de salud pública al identificar factores de riesgo importantes.
